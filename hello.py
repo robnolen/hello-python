@@ -1,5 +1,7 @@
 import os
 import uuid
+import redis
+import json
 from flask import Flask
 
 
@@ -9,15 +11,32 @@ BLUE = "#0099FF"
 GREEN = "#33CC33"
 COLOR = GREEN
 
-def getcounter():
-    with open('counter', 'r+') as f:
-        counter = int(f.readline())
-        return counter
+# default redis config
+redis_host = os.getenv('REDIS_HOST')
+redis_port = os.getenv('REDIS_PORT')
+redis_pw   = os.getenv('REDIS_PW')
+
+#if VCAP_SERVICES is not Nil, then we are in CF, and use rediscloud service
+if not os.getenv('VCAP_SERVICES') == None:
+    service_data = json.loads(os.getenv('VCAP_SERVICES'))['rediscloud'][0]
+    service_creds = service_data['credentials']
+    redis_host = service_creds['hostname']
+    redis_port = service_creds['port']
+    redis_pw   = service_creds['password']
+
+myredis = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
+
+
+def getcounter(): 
+    counter = myredis.get('pagecount')
+    if counter == None:
+        myredis.incr('pagecount')
+        counter = 0
+    return counter
 
 def updatecounter(count):
-    with open('counter', 'w+') as f:
-        f.write(str(count+1))
-
+    myredis.incr('pagecount')
+    
 @app.route('/')
 def hello():
     count = getcounter()
