@@ -3,10 +3,12 @@ import uuid
 import redis
 import json
 import requests
+import newrelic.agent
 from flask import Flask
 
+newrelic.agent.initialize()
 
-app = Flask(__name__)
+app = newrelic.agent.WSGIApplicationWrapper(Flask(__name__))
 my_uuid = str(uuid.uuid1())
 BLUE = "#0099FF"
 GREEN = "#33CC33"
