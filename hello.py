@@ -8,7 +8,7 @@ from flask import Flask
 
 newrelic.agent.initialize()
 
-app = newrelic.agent.WSGIApplicationWrapper(Flask(__name__))
+app = Flask(__name__)
 my_uuid = str(uuid.uuid1())
 BLUE = "#0099FF"
 GREEN = "#33CC33"
